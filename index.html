@@ -1,0 +1,1532 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>
+      CLAUDE.mdとスキル、書き方と使い分け｜Claude
+      Code公式ベストプラクティス（株式会社コミクス）
+    </title>
+    <meta
+      name="description"
+      content="CLAUDE.mdは短く具体的に、長い手順はスキルへ、例外のないルールはHookへ。公式ドキュメントに基づくClaude Code運用の要点を、株式会社コミクス代表取締役 鈴木章裕がまとめました。"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "CLAUDE.mdとスキル、書き方と使い分け",
+        "author": { "@type": "Person", "name": "鈴木章裕" },
+        "publisher": { "@type": "Organization", "name": "株式会社コミクス" },
+        "datePublished": "2026-11-05",
+        "inLanguage": "ja",
+        "about": "Claude Code の CLAUDE.md とスキル（SKILL.md）の書き方・運用設計"
+      }
+    </script>
+    <style>
+      :root {
+        --color-bg: #fffaf3;
+        --color-bg-alt: #fdf0da;
+        --color-dark: #241f1a;
+        --color-dark-2: #2e2821;
+        --color-primary: #c2612e;
+        --color-primary-dark: #a44f24;
+        --color-text: #241f1a;
+        --color-text-soft: #55493d;
+        --color-border: #ead9c0;
+        --color-good: #2f7a4f;
+        --font-base:
+          "Hiragino Sans", "Noto Sans JP", "Yu Gothic", "Segoe UI", system-ui,
+          -apple-system, sans-serif;
+        --font-mono:
+          "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        --max-w: 1120px;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        font-family: var(--font-base);
+        font-size: 17px;
+        line-height: 1.8;
+        color: var(--color-text);
+        background: var(--color-bg);
+        word-break: break-word;
+        overflow-wrap: break-word;
+      }
+      img {
+        max-width: 100%;
+        display: block;
+      }
+      a {
+        color: var(--color-primary-dark);
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        line-height: 1.4;
+        margin: 0 0 0.6em;
+        color: var(--color-dark);
+      }
+      h1 {
+        font-size: clamp(1.9rem, 1.3rem + 2.5vw, 3rem);
+        font-weight: 800;
+      }
+      h2 {
+        font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.2rem);
+        font-weight: 800;
+      }
+      h3 {
+        font-size: 1.15rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 0 0 1em;
+      }
+      ul,
+      ol {
+        margin: 0 0 1em;
+        padding-left: 1.3em;
+      }
+      .container {
+        max-width: var(--max-w);
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+      .section {
+        padding: 64px 0;
+      }
+      .section--alt {
+        background: var(--color-bg-alt);
+      }
+      .section--dark {
+        background: var(--color-dark);
+        color: #f3ece2;
+      }
+      .section--dark h2,
+      .section--dark h3 {
+        color: #fff;
+      }
+      .section--dark .lead {
+        color: #e4d7c6;
+      }
+      .eyebrow {
+        display: inline-block;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--color-primary-dark);
+        background: #fbe4cc;
+        padding: 0.35em 0.9em;
+        border-radius: 999px;
+        margin-bottom: 1em;
+      }
+      .lead {
+        font-size: 1.08rem;
+        color: var(--color-text-soft);
+        max-width: 62ch;
+      }
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        background: var(--color-dark);
+        color: #fff;
+        padding: 12px 18px;
+        z-index: 200;
+        border-radius: 0 0 8px 0;
+      }
+      .skip-link:focus {
+        left: 0;
+      }
+      :focus-visible {
+        outline: 3px solid var(--color-primary-dark);
+        outline-offset: 3px;
+      }
+
+      /* header */
+      header.site-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(255, 250, 243, 0.96);
+        border-bottom: 1px solid var(--color-border);
+        backdrop-filter: saturate(140%) blur(4px);
+      }
+      .nav-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 0;
+      }
+      .logo {
+        font-weight: 800;
+        font-size: 1.3rem;
+        letter-spacing: 0.03em;
+        color: var(--color-primary);
+        text-decoration: none;
+      }
+      .logo span {
+        color: var(--color-dark);
+      }
+      nav.main-nav {
+        display: none;
+      }
+      nav.main-nav ul {
+        display: flex;
+        gap: 22px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        align-items: center;
+      }
+      nav.main-nav a {
+        color: var(--color-text);
+        text-decoration: none;
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+      nav.main-nav a:hover {
+        color: var(--color-primary-dark);
+      }
+      .nav-cta {
+        background: var(--color-primary);
+        color: #fff !important;
+        padding: 0.55em 1.2em;
+        border-radius: 8px;
+      }
+      .nav-toggle {
+        background: none;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      header.site-header.nav-open .mobile-panel {
+        display: block;
+      }
+      .mobile-panel {
+        display: none;
+        border-top: 1px solid var(--color-border);
+        padding: 10px 0 16px;
+      }
+      .mobile-panel ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .mobile-panel a {
+        color: var(--color-text);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+      }
+      .mobile-panel .nav-cta {
+        display: inline-block;
+      }
+
+      @media (min-width: 769px) {
+        nav.main-nav {
+          display: block;
+        }
+        .nav-toggle {
+          display: none;
+        }
+        .mobile-panel {
+          display: none !important;
+        }
+      }
+
+      /* buttons */
+      .btn {
+        display: inline-block;
+        padding: 0.85em 1.6em;
+        border-radius: 10px;
+        font-weight: 700;
+        text-decoration: none;
+        font-size: 1rem;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
+        border: 2px solid transparent;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+      .btn-primary {
+        background: var(--color-primary);
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: var(--color-primary-dark);
+        color: #fff;
+      }
+      .btn-outline {
+        border-color: #fff;
+        color: #fff;
+      }
+      .btn-outline:hover {
+        background: #fff;
+        color: var(--color-dark);
+      }
+      .btn-outline-dark {
+        border-color: var(--color-dark);
+        color: var(--color-dark);
+      }
+      .btn-outline-dark:hover {
+        background: var(--color-dark);
+        color: #fff;
+      }
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 1.6em;
+      }
+
+      /* hero */
+      .hero {
+        padding: 70px 0 56px;
+      }
+      .hero-byline {
+        margin-top: 1.4em;
+        font-size: 0.95rem;
+        color: var(--color-text-soft);
+        border-left: 3px solid var(--color-primary);
+        padding-left: 14px;
+      }
+      .hero-highlight {
+        margin: 1.6em 0 0;
+        background: var(--color-dark);
+        color: #fff;
+        padding: 18px 22px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 1.05rem;
+        display: inline-block;
+      }
+
+      /* principle cards */
+      .card-grid {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: 1fr;
+        margin-top: 1.6em;
+      }
+      @media (min-width: 769px) {
+        .card-grid.cols-3 {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      @media (min-width: 769px) {
+        .card-grid.cols-2 {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (min-width: 769px) {
+        .card-grid.cols-4 {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (min-width: 1025px) {
+        .card-grid.cols-4 {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+      .card {
+        background: #fff;
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        padding: 24px;
+      }
+      .section--dark .card {
+        background: var(--color-dark-2);
+        border-color: #473d31;
+      }
+      .card .num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--color-primary);
+        color: #fff;
+        font-weight: 800;
+        margin-bottom: 12px;
+        font-size: 0.95rem;
+      }
+      .callout {
+        background: #fbe4cc;
+        border-left: 4px solid var(--color-primary);
+        padding: 16px 20px;
+        border-radius: 8px;
+        font-weight: 700;
+        margin: 1.4em 0;
+      }
+      .note-box {
+        background: #fff;
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        padding: 16px 20px;
+        font-size: 0.95rem;
+        color: var(--color-text-soft);
+      }
+
+      /* two column */
+      .two-col {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: 1fr;
+        margin-top: 1.6em;
+      }
+      @media (min-width: 769px) {
+        .two-col {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      .col-box {
+        background: #fff;
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .col-box h3 {
+        margin: 0;
+        padding: 14px 20px;
+        background: var(--color-dark);
+        color: #fff;
+        font-size: 1rem;
+      }
+      .col-box.bad h3 {
+        background: #5a4636;
+      }
+      .col-box ul {
+        margin: 0;
+        padding: 16px 20px 16px 36px;
+      }
+      .col-box li {
+        margin-bottom: 0.5em;
+      }
+
+      /* tables */
+      .table-wrap {
+        overflow-x: auto;
+        margin-top: 1.6em;
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 520px;
+        background: #fff;
+      }
+      caption {
+        caption-side: top;
+        text-align: left;
+        font-weight: 700;
+        padding: 10px 16px;
+        font-size: 0.9rem;
+        color: var(--color-text-soft);
+      }
+      th,
+      td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--color-border);
+        text-align: left;
+        font-size: 0.95rem;
+        vertical-align: top;
+      }
+      thead th {
+        background: var(--color-primary);
+        color: #fff;
+        font-weight: 700;
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      tbody tr:nth-child(even) {
+        background: #fff8ee;
+      }
+
+      /* code blocks */
+      .code-block {
+        background: var(--color-dark);
+        color: #f2e8da;
+        border-radius: 12px;
+        padding: 20px;
+        overflow-x: auto;
+        margin: 1.2em 0;
+        font-size: 0.92rem;
+      }
+      .code-block code {
+        font-family: var(--font-mono);
+        white-space: pre;
+      }
+      .code-label {
+        display: inline-block;
+        background: var(--color-primary);
+        color: #fff;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 0.25em 0.8em;
+        border-radius: 999px;
+        margin-bottom: 0.8em;
+      }
+
+      /* folder tree */
+      .tree {
+        background: #fff;
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 20px;
+        font-family: var(--font-mono);
+        font-size: 0.92rem;
+        line-height: 1.9;
+        margin-top: 1.4em;
+      }
+      .tree .muted {
+        color: var(--color-text-soft);
+      }
+
+      /* process steps */
+      .step-list {
+        counter-reset: step;
+        margin-top: 1.8em;
+        display: grid;
+        gap: 18px;
+      }
+      .step {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 16px;
+        align-items: start;
+        background: #fff;
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 20px;
+      }
+      .step .num {
+        flex-shrink: 0;
+      }
+
+      /* faq */
+      .faq-list {
+        margin-top: 1.6em;
+        display: grid;
+        gap: 12px;
+      }
+      details.faq-item {
+        background: #fff;
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        padding: 4px 20px;
+      }
+      details.faq-item summary {
+        cursor: pointer;
+        font-weight: 700;
+        padding: 14px 0;
+        list-style: none;
+        position: relative;
+        padding-right: 30px;
+      }
+      details.faq-item summary::-webkit-details-marker {
+        display: none;
+      }
+      details.faq-item summary::after {
+        content: "+";
+        position: absolute;
+        right: 0;
+        top: 12px;
+        font-size: 1.3rem;
+        color: var(--color-primary);
+      }
+      details.faq-item[open] summary::after {
+        content: "−";
+      }
+      details.faq-item p {
+        padding-bottom: 16px;
+        color: var(--color-text-soft);
+      }
+
+      /* sources */
+      .source-list {
+        margin-top: 1.4em;
+        list-style: none;
+        padding: 0;
+        display: grid;
+        gap: 10px;
+      }
+      .source-list li {
+        font-size: 0.92rem;
+        border-bottom: 1px dashed var(--color-border);
+        padding-bottom: 10px;
+      }
+      .source-list .src-title {
+        font-weight: 700;
+        display: block;
+      }
+      .source-list .src-url {
+        color: var(--color-text-soft);
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+      }
+
+      /* contact */
+      .contact-box {
+        background: #fff;
+        border: 2px dashed var(--color-primary);
+        border-radius: 14px;
+        padding: 28px;
+        margin-top: 1.8em;
+      }
+      .placeholder {
+        color: var(--color-primary-dark);
+        font-weight: 700;
+      }
+
+      footer.site-footer {
+        background: var(--color-dark);
+        color: #cbbfae;
+        padding: 46px 0 30px;
+        font-size: 0.9rem;
+      }
+      .disclaimer {
+        text-align: center;
+        font-weight: 700;
+        color: #fff;
+        background: var(--color-primary-dark);
+        padding: 14px 20px;
+        border-radius: 10px;
+        margin-bottom: 28px;
+        font-size: 0.95rem;
+      }
+      .footer-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .footer-logo {
+        font-weight: 800;
+        color: #fff;
+        font-size: 1.1rem;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .js-anim .reveal {
+          opacity: 0;
+          transform: translateY(14px);
+          transition:
+            opacity 0.6s ease,
+            transform 0.6s ease;
+        }
+        .js-anim .reveal.is-visible {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+      small,
+      .small-text {
+        font-size: 13px;
+      }
+      .section-head {
+        max-width: 70ch;
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">本文へスキップ</a>
+
+    <header class="site-header" id="siteHeader">
+      <div class="container nav-row">
+        <a href="#top" class="logo">COMIX<span>|note</span></a>
+        <nav class="main-nav" aria-label="主要ナビゲーション">
+          <ul>
+            <li><a href="#principle">原則</a></li>
+            <li><a href="#how-to-write">書き方</a></li>
+            <li><a href="#compare">比較</a></li>
+            <li><a href="#commands">コマンド</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#contact" class="nav-cta">相談する</a></li>
+          </ul>
+        </nav>
+        <button
+          class="nav-toggle"
+          id="navToggle"
+          aria-expanded="false"
+          aria-controls="mobilePanel"
+        >
+          ☰ メニュー
+        </button>
+      </div>
+      <div class="mobile-panel" id="mobilePanel">
+        <div class="container">
+          <ul>
+            <li><a href="#principle">原則</a></li>
+            <li><a href="#how-to-write">書き方</a></li>
+            <li><a href="#compare">比較</a></li>
+            <li><a href="#commands">コマンド</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li>
+              <a href="#contact" class="btn btn-primary nav-cta">相談する</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <!-- HERO -->
+      <section class="hero" id="top">
+        <div class="container">
+          <span class="eyebrow">Claude Code 活用資料</span>
+          <h1>CLAUDE.md とスキル<br />書き方と使い分け</h1>
+          <p class="lead">
+            毎回ブレずに動かすための、設定と運用の要点。公式ドキュメントに基づき、どこに何を書けばClaude
+            Codeが迷わず動くかを整理しました。
+          </p>
+          <div class="hero-highlight">
+            事実は CLAUDE.md、手順はスキル、例外なしは Hook
+          </div>
+          <p class="hero-byline">
+            鈴木章裕　｜　株式会社コミクス
+            代表取締役　｜　2026年11月5日　公式ドキュメントで確認
+          </p>
+          <div class="cta-row">
+            <a href="#principle" class="btn btn-primary">資料の要点を見る</a>
+            <a href="#contact" class="btn btn-outline-dark"
+              >自社の運用について相談する</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- PRINCIPLE -->
+      <section class="section section--alt" id="principle">
+        <div class="container">
+          <div class="section-head">
+            <h2>書く場所を3つに分ける</h2>
+            <p class="lead">判断の軸は「いつ必要な情報か」。</p>
+          </div>
+          <div class="callout">
+            毎回必要なものだけを常時読み込みに残し、残りは必要なときに読ませる
+          </div>
+          <div class="card-grid cols-3">
+            <div class="card reveal">
+              <span class="num">1</span>
+              <h3>CLAUDE.md</h3>
+              <p>毎回必要な事実と規約（コマンド、注意点）</p>
+            </div>
+            <div class="card reveal">
+              <span class="num">2</span>
+              <h3>スキル</h3>
+              <p>必要なときの手順（デプロイ、レビュー）</p>
+            </div>
+            <div class="card reveal">
+              <span class="num">3</span>
+              <h3>Hook など</h3>
+              <p>例外を許さないルール（必ず実行、絶対に触らない）</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- WRITE RULES -->
+      <section class="section" id="how-to-write">
+        <div class="container">
+          <div class="section-head">
+            <h2>CLAUDE.md は短く、具体的に</h2>
+            <p class="lead">
+              目標は1ファイル200行以内。コードから自明なことは書かない。
+            </p>
+          </div>
+          <div class="two-col">
+            <div class="col-box">
+              <h3>書くもの</h3>
+              <ul>
+                <li>ビルド・テストのコマンド</li>
+                <li>誤解を招きやすい箇所</li>
+                <li>チームで決めた決定事項</li>
+                <li>過去に2回以上修正したルール</li>
+              </ul>
+            </div>
+            <div class="col-box bad">
+              <h3>書かないもの</h3>
+              <ul>
+                <li>コードを読めば分かること</li>
+                <li>長い手順（スキルへ移す）</li>
+                <li>特定ディレクトリ専用のルール（.claude/rules/ へ移す）</li>
+              </ul>
+            </div>
+          </div>
+          <div class="note-box" style="margin-top: 1.4em">
+            基準は「Claude が毎回再発見しがちな情報」か。
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <caption>
+                詰め込まず、置き場所を分ける（長い手順と専用ルールは CLAUDE.md
+                の外へ）
+              </caption>
+              <thead>
+                <tr>
+                  <th>書きたい内容</th>
+                  <th>置き場所</th>
+                  <th>読み込み</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>コマンド・規約・注意点</td>
+                  <td>CLAUDE.md</td>
+                  <td>毎セッション</td>
+                </tr>
+                <tr>
+                  <td>特定ディレクトリ専用ルール</td>
+                  <td>.claude/rules/（paths: を指定）</td>
+                  <td>対象を扱うとき</td>
+                </tr>
+                <tr>
+                  <td>長い手順・チェックリスト</td>
+                  <td>.claude/skills/</td>
+                  <td>使うときだけ</td>
+                </tr>
+                <tr>
+                  <td>例外を許さないルール</td>
+                  <td>Hook・deny ルール（managed settings）</td>
+                  <td>自動で強制</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section-head" style="margin-top: 3em">
+            <h2>守られる指示の書き方</h2>
+            <p class="lead">プロンプトの原則に従うと遵守率が上がる。</p>
+          </div>
+          <div class="card-grid cols-3">
+            <div class="card reveal">
+              <span class="num">1</span>
+              <h3>明示的に書く</h3>
+              <p>
+                「ちゃんとテストする」ではなく<br /><code
+                  >pnpm test path/to/file.test.ts</code
+                >
+                で実行、のように書く
+              </p>
+            </div>
+            <div class="card reveal">
+              <span class="num">2</span>
+              <h3>「なぜ」を添える</h3>
+              <p>
+                「src/legacy/
+                のパターンは古いのでコピーしない」のように理由を書く
+              </p>
+            </div>
+            <div class="card reveal">
+              <span class="num">3</span>
+              <h3>例を示す</h3>
+              <p>
+                「2スペースインデントを使う」「src/lib/errors.ts
+                のヘルパーを使う」
+              </p>
+            </div>
+          </div>
+          <div class="callout">指示は「守れたか確認できる」形で書く</div>
+        </div>
+      </section>
+
+      <!-- LIFECYCLE -->
+      <section class="section section--dark">
+        <div class="container">
+          <div class="section-head">
+            <h2>作って終わりにしない</h2>
+            <p class="lead">初期生成から監査、変更管理までを回す。</p>
+          </div>
+          <div class="card-grid cols-4">
+            <div class="card reveal">
+              <span class="num">1</span>
+              <h3>生成する</h3>
+              <p>/init で初期ドラフトを作り、不要な行を削る</p>
+            </div>
+            <div class="card reveal">
+              <span class="num">2</span>
+              <h3>監査する</h3>
+              <p>/doctor prompt-audit（v2.1.283以降）で矛盾や古い指示を確認</p>
+            </div>
+            <div class="card reveal">
+              <span class="num">3</span>
+              <h3>管理する</h3>
+              <p>所有者を決め、コードレビューと同様に変更を管理する</p>
+            </div>
+            <div class="card reveal">
+              <span class="num">4</span>
+              <h3>強制する</h3>
+              <p>例外なしのルールは Hook や deny ルールで強制する</p>
+            </div>
+          </div>
+          <div class="callout" style="background: #3a3024; color: #fff">
+            「必ず実行」「絶対に触らない」は Hook で仕組みにする
+          </div>
+        </div>
+      </section>
+
+      <!-- CODE EXAMPLES -->
+      <section class="section section--alt">
+        <div class="container">
+          <div class="section-head">
+            <h2>CLAUDE.md / SKILL.md の実例</h2>
+            <p class="lead">
+              資料に掲載されているサンプルをそのまま抜粋しています。
+            </p>
+          </div>
+
+          <h3>CLAUDE.md の最小例</h3>
+          <div class="code-block">
+            <span class="code-label">CLAUDE.md</span><br /><code
+              ># Commands - Install: pnpm install - Run one test file: pnpm
+              vitest run path/to/file.test.ts - Typecheck: pnpm tsc --noEmit -
+              Lint: pnpm lint # Conventions - エラーは `src/lib/errors.ts`
+              のヘルパーを使う。生の文字列をthrowしない - `src/legacy/`
+              は現役だが、新しいコードにそのパターンをコピーしない -
+              APIハンドラは `src/api/handlers/` に置く # Gotchas -
+              統合テスト前に `.env.example` を参考に `DATABASE_URL` を設定する -
+              生成ファイル（`src/gen/`）は絶対に手動編集しない</code
+            >
+          </div>
+
+          <h3>実践的な例①：概要とコマンド</h3>
+          <div class="code-block">
+            <span class="code-label">CLAUDE.md</span><br /><code
+              ># プロジェクト概要 Next.js + TypeScript
+              の管理画面。モノレポではなく単一リポジトリ。 # コマンド -
+              インストール: `pnpm install` - 開発サーバー: `pnpm dev` -
+              テスト（単一ファイル）: `pnpm test path/to/file.test.ts` -
+              型チェック: `pnpm typecheck` - ビルド: `pnpm build`</code
+            >
+          </div>
+          <div class="note-box">
+            ポイント：コードから読み取れない情報だけを、短く具体的に書く。
+          </div>
+
+          <h3 style="margin-top: 2em">実践的な例②：規約と注意点</h3>
+          <div class="code-block">
+            <span class="code-label">CLAUDE.md</span><br /><code
+              ># コーディング規約 - コンポーネントは関数コンポーネント +
+              TypeScriptで書く - スタイルはTailwind CSSを使う（CSS
+              Modulesは使わない） - エラーハンドリングは `src/utils/error.ts` の
+              `AppError` を使う - 日付はすべて `date-fns` を使う（native
+              Dateの直接操作は避ける） # 注意点 - `src/legacy/`
+              配下のコードは参照のみ。新しい実装にコピーしない - 環境変数は必ず
+              `.env.example` に記載する - データベースマイグレーションは
+              `prisma/migrations/`
+              に追加する。既存のマイグレーションファイルは編集しない -
+              テストを追加・修正したら、該当テストだけを実行して確認すること</code
+            >
+          </div>
+
+          <h3 style="margin-top: 2em">SKILL.md の書き方の例</h3>
+          <div class="code-block">
+            <span class="code-label">SKILL.md</span><br /><code
+              >--- name: summarize-changes description:
+              未コミットの変更を要約し、リスクを指摘する。ユーザーが「何が変わったか」「コミットメッセージを書いて」と頼んだときに使う。
+              --- # 変更の要約 ## 現在の差分 !`git diff HEAD` ## 手順 1.
+              上記の差分を2〜3個の箇条書きで要約する 2.
+              エラー処理不足、ハードコード、テスト更新漏れなどのリスクを指摘する
+              3. 差分が空なら「未コミットの変更はありません」と返す</code
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- SKILL STRUCTURE -->
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <h2>スキルはフォルダ＋SKILL.md</h2>
+          </div>
+          <div class="tree">
+            my-skill/<br />
+            ├── SKILL.md <span class="muted"># 必須</span><br />
+            ├── references/ <span class="muted"># 任意：詳細ドキュメント</span
+            ><br />
+            ├── assets/ <span class="muted"># 任意：テンプレートなど</span
+            ><br />
+            └── scripts/ <span class="muted"># 任意：実行するスクリプト</span>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>用途</th>
+                  <th>置き場所</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>個人用（全プロジェクト）</td>
+                  <td><code>~/.claude/skills/my-skill/SKILL.md</code></td>
+                </tr>
+                <tr>
+                  <td>プロジェクト用</td>
+                  <td><code>.claude/skills/my-skill/SKILL.md</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="note-box" style="margin-top: 1.2em">
+            補足：必須は SKILL.md だけ。ほかのフォルダは必要になったら足す。
+          </div>
+
+          <div class="section-head" style="margin-top: 3em">
+            <h3 style="font-size: 1.5rem">押さえる4つのポイント</h3>
+            <p class="lead">最も重要なのは description。</p>
+          </div>
+          <div class="card-grid cols-4">
+            <div class="card reveal">
+              <h3>name</h3>
+              <p>小文字・数字・ハイフンのみ。最大64字でフォルダ名と合わせる</p>
+            </div>
+            <div class="card reveal" style="background: #fbe4cc">
+              <h3>description</h3>
+              <p>
+                何をするか＋どんなときに使うかを具体的に。発動の判断材料になる
+              </p>
+            </div>
+            <div class="card reveal">
+              <h3>本文</h3>
+              <p>手順を明確に書く。長くなったら詳細は references/ へ移す</p>
+            </div>
+            <div class="card reveal">
+              <h3>動的コンテキスト</h3>
+              <p>!`コマンド` でコマンド出力をその場で埋め込める</p>
+            </div>
+          </div>
+          <div class="callout">
+            使い方：依頼が description に合えば自動発動。/skill-name
+            で手動も可。
+          </div>
+        </div>
+      </section>
+
+      <!-- COMPARE -->
+      <section class="section section--alt" id="compare">
+        <div class="container">
+          <div class="section-head">
+            <h2>CLAUDE.md と SKILL.md の違い</h2>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>項目</th>
+                  <th>CLAUDE.md</th>
+                  <th>SKILL.md（スキル）</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>読み込み</td>
+                  <td>開始時に常時（ルート）</td>
+                  <td>名前と説明は常時、本文は都度</td>
+                </tr>
+                <tr>
+                  <td>消費量</td>
+                  <td>高い（毎回全行が載る）</td>
+                  <td>低い（本文は呼ぶときだけ）</td>
+                </tr>
+                <tr>
+                  <td>向く内容</td>
+                  <td>事実・規約</td>
+                  <td>手順・チェックリスト</td>
+                </tr>
+                <tr>
+                  <td>例</td>
+                  <td>コマンド、構成、規約</td>
+                  <td>デプロイ、リリース、レビュー</td>
+                </tr>
+                <tr>
+                  <td>推奨サイズ</td>
+                  <td>200行以内が目標</td>
+                  <td>本文500行程度まで</td>
+                </tr>
+                <tr>
+                  <td>場所</td>
+                  <td>プロジェクトルートなど</td>
+                  <td>.claude/skills/ など</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout">
+            CLAUDE.md は説明書、SKILL.md は作業マニュアル
+          </div>
+
+          <div class="section-head" style="margin-top: 3em">
+            <h3 style="font-size: 1.5rem">迷ったら「いつ必要か」で決める</h3>
+            <p class="lead">
+              常に必要な事実は CLAUDE.md、必要なときの手順はスキル。
+            </p>
+          </div>
+          <div class="two-col">
+            <div class="col-box">
+              <h3>CLAUDE.md に書くもの（毎回覚えておく前提条件）</h3>
+              <ul>
+                <li>npm run test の実行方法</li>
+                <li>エラーハンドリングのルール</li>
+                <li>ディレクトリの役割</li>
+                <li>過去に2回以上修正した注意点</li>
+              </ul>
+            </div>
+            <div class="col-box bad">
+              <h3>SKILL.md に書くもの（必要なときだけ見る手順）</h3>
+              <ul>
+                <li>リリース前のチェックリスト</li>
+                <li>特定形式の文書作成手順</li>
+                <li>デプロイ作業の手順</li>
+              </ul>
+            </div>
+          </div>
+          <div class="note-box" style="margin-top: 1.4em">
+            CLAUDE.md の長い手順は、無関係な作業でもトークンを使う。
+          </div>
+        </div>
+      </section>
+
+      <!-- COMMANDS -->
+      <section class="section" id="commands">
+        <div class="container">
+          <div class="section-head">
+            <h2>コマンド一覧（抜粋）</h2>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <caption>
+                ターミナルから：起動と再開
+              </caption>
+              <thead>
+                <tr>
+                  <th>コマンド</th>
+                  <th>できること</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>claude</code></td>
+                  <td>対話セッションを開始する</td>
+                </tr>
+                <tr>
+                  <td><code>claude "質問"</code></td>
+                  <td>初期プロンプト付きで開始する</td>
+                </tr>
+                <tr>
+                  <td><code>claude -p "質問"</code></td>
+                  <td>1回だけ実行して終了する（非対話）</td>
+                </tr>
+                <tr>
+                  <td><code>claude -c</code></td>
+                  <td>このフォルダの直近の会話を再開する</td>
+                </tr>
+                <tr>
+                  <td><code>claude -r "セッション名"</code></td>
+                  <td>IDまたは名前で再開する</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-wrap" style="margin-top: 1.4em">
+            <table>
+              <caption>
+                ターミナルから：管理と診断
+              </caption>
+              <thead>
+                <tr>
+                  <th>コマンド</th>
+                  <th>できること</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>claude update</code></td>
+                  <td>最新版に更新する</td>
+                </tr>
+                <tr>
+                  <td><code>claude auth login</code></td>
+                  <td>ログインする</td>
+                </tr>
+                <tr>
+                  <td><code>claude auth logout</code></td>
+                  <td>ログアウトする</td>
+                </tr>
+                <tr>
+                  <td><code>claude auth status</code></td>
+                  <td>認証状態を確認する</td>
+                </tr>
+                <tr>
+                  <td><code>claude doctor</code></td>
+                  <td>環境を診断する（読み取り専用）</td>
+                </tr>
+                <tr>
+                  <td><code>claude mcp</code></td>
+                  <td>MCPサーバーを設定する</td>
+                </tr>
+                <tr>
+                  <td><code>claude agents</code></td>
+                  <td>バックグラウンドセッションを管理する</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-wrap" style="margin-top: 1.4em">
+            <table>
+              <caption>
+                セッション内：記憶と文脈
+              </caption>
+              <thead>
+                <tr>
+                  <th>コマンド</th>
+                  <th>できること</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>/help</code></td>
+                  <td>使えるコマンドの一覧を表示する</td>
+                </tr>
+                <tr>
+                  <td><code>/init</code></td>
+                  <td>CLAUDE.md を初期生成する</td>
+                </tr>
+                <tr>
+                  <td><code>/memory</code></td>
+                  <td>CLAUDE.md を表示・編集する</td>
+                </tr>
+                <tr>
+                  <td><code>/clear</code></td>
+                  <td>会話履歴をクリアする</td>
+                </tr>
+                <tr>
+                  <td><code>/compact</code></td>
+                  <td>会話を要約してコンテキストを節約する</td>
+                </tr>
+                <tr>
+                  <td><code>/context</code></td>
+                  <td>コンテキストの使用状況を確認する</td>
+                </tr>
+                <tr>
+                  <td><code>/cost</code></td>
+                  <td>トークン使用量を確認する（/usage の別名）</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="table-wrap" style="margin-top: 1.4em">
+            <table>
+              <caption>
+                セッション内：作業と設定
+              </caption>
+              <thead>
+                <tr>
+                  <th>コマンド</th>
+                  <th>できること</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>/model</code></td>
+                  <td>使用するモデルを変更する</td>
+                </tr>
+                <tr>
+                  <td><code>/diff</code></td>
+                  <td>変更の差分を確認する</td>
+                </tr>
+                <tr>
+                  <td><code>/code-review</code></td>
+                  <td>コードレビューを行う</td>
+                </tr>
+                <tr>
+                  <td><code>/doctor</code></td>
+                  <td>セットアップを診断・修正する</td>
+                </tr>
+                <tr>
+                  <td><code>/permissions</code></td>
+                  <td>権限を設定する</td>
+                </tr>
+                <tr>
+                  <td><code>/config</code></td>
+                  <td>設定画面を開く</td>
+                </tr>
+                <tr>
+                  <td><code>/exit</code></td>
+                  <td>終了する</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROCESS -->
+      <section class="section section--alt">
+        <div class="container">
+          <div class="section-head">
+            <h2>今日からやる3つのこと</h2>
+            <p class="lead">まず1プロジェクトで、この順に進める。</p>
+          </div>
+          <div class="step-list">
+            <div class="step reveal">
+              <span class="num">1</span>
+              <div>
+                <h3>/init で作る</h3>
+                <p>CLAUDE.md の初期ドラフトを生成し、不要な行を削る</p>
+              </div>
+            </div>
+            <div class="step reveal">
+              <span class="num">2</span>
+              <div>
+                <h3>手順を移す</h3>
+                <p>長い手順はスキルへ、専用ルールは .claude/rules/ へ移す</p>
+              </div>
+            </div>
+            <div class="step reveal">
+              <span class="num">3</span>
+              <div>
+                <h3>点検する</h3>
+                <p>/doctor prompt-audit で矛盾と古い指示を確認する</p>
+              </div>
+            </div>
+          </div>
+          <div class="note-box" style="margin-top: 1.4em">
+            迷ったら：セッション中に／を打つと、使えるコマンドが一覧で出る。
+          </div>
+          <div class="cta-row">
+            <a href="#contact" class="btn btn-primary"
+              >自社の運用について相談する</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="section" id="faq">
+        <div class="container">
+          <div class="section-head">
+            <h2>よくある質問</h2>
+            <p class="lead">
+              資料の内容をもとに、判断に迷いやすい点をまとめました。
+            </p>
+          </div>
+          <div class="faq-list">
+            <details class="faq-item">
+              <summary>
+                CLAUDE.md と SKILL.md はどちらに書けばいいですか？
+              </summary>
+              <p>
+                常に必要な事実（コマンド・規約・ディレクトリの役割など）は
+                CLAUDE.md
+                へ、必要なときだけ見る手順（リリース前チェックリストやデプロイ手順など）は
+                SKILL.md へ分けます。
+              </p>
+            </details>
+            <details class="faq-item">
+              <summary>CLAUDE.md の適切な長さの目安は？</summary>
+              <p>
+                1ファイル200行以内を目標に、コードを読めば分かる内容や長い手順は書かず、スキルや
+                .claude/rules/ へ移します。
+              </p>
+            </details>
+            <details class="faq-item">
+              <summary>絶対に守らせたいルールはどこに書きますか？</summary>
+              <p>
+                「必ず実行」「絶対に触らない」など例外を許さないルールは、CLAUDE.md
+                の文章ではなく Hook や deny ルール（managed
+                settings）で強制します。
+              </p>
+            </details>
+            <details class="faq-item">
+              <summary>SKILL.md を書くときに最も重要な項目は？</summary>
+              <p>
+                description
+                です。何をするか＋どんなときに使うかを具体的に書くことが、自動発動の判断材料になります。
+              </p>
+            </details>
+            <details class="faq-item">
+              <summary>
+                作った CLAUDE.md や SKILL.md はそのままでいいですか？
+              </summary>
+              <p>
+                作って終わりにせず、/doctor
+                prompt-audit（v2.1.283以降）などで矛盾や古い指示を定期的に点検し、所有者を決めて変更を管理します。
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- SOURCES -->
+      <section class="section section--alt">
+        <div class="container">
+          <div class="section-head">
+            <h2>出典（2026年11月5日に確認）</h2>
+          </div>
+          <ul class="source-list">
+            <li>
+              <span class="src-title">Best practices for Claude Code</span
+              ><span class="src-url"
+                >code.claude.com/docs/en/best-practices</span
+              >
+            </li>
+            <li>
+              <span class="src-title">How Claude remembers your project</span
+              ><span class="src-url">code.claude.com/docs/en/memory</span>
+            </li>
+            <li>
+              <span class="src-title">Extend Claude with skills</span
+              ><span class="src-url">code.claude.com/docs/en/skills</span>
+            </li>
+            <li>
+              <span class="src-title">CLI reference</span
+              ><span class="src-url"
+                >code.claude.com/docs/en/cli-reference</span
+              >
+            </li>
+            <li>
+              <span class="src-title">Commands</span
+              ><span class="src-url">code.claude.com/docs/en/commands</span>
+            </li>
+            <li>
+              <span class="src-title">Create custom skills</span
+              ><span class="src-url">claude.com/docs/skills/how-to</span>
+            </li>
+            <li>
+              <span class="src-title">Steering Claude Code</span
+              ><span class="src-url"
+                >claude.com/resources/articles/steering-claude-code-skills-hooks-rules-subagents-and-more</span
+              >
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- CONTACT -->
+      <section class="section" id="contact">
+        <div class="container">
+          <div class="section-head">
+            <h2>自社の CLAUDE.md・スキル運用について相談する</h2>
+            <p class="lead">
+              このガイドは、株式会社コミクス代表取締役
+              鈴木章裕が公式ドキュメントをもとに整理したものです。自社のルール設計を一緒に点検してほしい、チームへの展開を相談したいという方はお問い合わせください。
+            </p>
+          </div>
+          <div class="contact-box">
+            <p><strong>お問い合わせ先</strong></p>
+            <p class="placeholder">
+              【要差し替え：問い合わせ先（メールアドレスまたはフォームURL）を設定してください】
+            </p>
+            <p class="small-text">
+              本資料には問い合わせ先の記載がないため、公開前に担当者が連絡先を設定する必要があります。
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p class="disclaimer">
+          本サイトはデザインデモです。実在の企業・サービスとは関係ありません
+        </p>
+        <div class="footer-row">
+          <div>
+            <div class="footer-logo">COMIX</div>
+            <p class="small-text">© 2026 株式会社コミクス</p>
+          </div>
+          <div>
+            <p class="small-text">
+              Claude Code
+              公式ドキュメントに基づく資料を元に作成｜2026年11月5日確認
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        "use strict";
+        var header = document.getElementById("siteHeader");
+        var toggle = document.getElementById("navToggle");
+        var panel = document.getElementById("mobilePanel");
+
+        if (toggle && header && panel) {
+          toggle.addEventListener("click", function () {
+            var isOpen = header.classList.toggle("nav-open");
+            toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+          });
+          panel.addEventListener("click", function (e) {
+            if (e.target.tagName === "A") {
+              header.classList.remove("nav-open");
+              toggle.setAttribute("aria-expanded", "false");
+            }
+          });
+        }
+
+        var prefersReducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        var reveals = document.querySelectorAll(".reveal");
+
+        if (prefersReducedMotion || !("IntersectionObserver" in window)) {
+          reveals.forEach(function (el) {
+            el.classList.add("is-visible");
+          });
+        } else {
+          document.documentElement.classList.add("js-anim");
+          var observer = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add("is-visible");
+                  observer.unobserve(entry.target);
+                }
+              });
+            },
+            { threshold: 0.12 },
+          );
+          reveals.forEach(function (el) {
+            observer.observe(el);
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>
